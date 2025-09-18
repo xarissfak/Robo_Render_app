@@ -1,0 +1,5 @@
+flask
+gunicorn
+inference-sdk
+requests
+pillow
