@@ -1,9 +1,11 @@
 import os
 from flask import Flask, request, jsonify
 from inference_sdk import InferenceHTTPClient
+from flask_cors import CORS
 
 # Δημιουργία Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Φορτώνει το API key από τα Environment Variables του Render
 client = InferenceHTTPClient(
@@ -46,3 +48,4 @@ if __name__ == "__main__":
     # To Render ανοίγει το port από το env var PORT
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
