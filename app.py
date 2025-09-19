@@ -1,44 +1,48 @@
+import os
 from flask import Flask, request, jsonify
 from inference_sdk import InferenceHTTPClient
-import requests
-from PIL import Image
-from io import BytesIO
 
+# Ξ”Ξ·ΞΌΞΉΞΏΟ…ΟΞ³Ξ―Ξ± Flask app
 app = Flask(__name__)
 
-# Roboflow client (Βάλε το δικό σου API Key εδώ)
+# Ξ¦ΞΏΟΟ„ΟΞ½ΞµΞΉ Ο„ΞΏ API key Ξ±Ο€Ο Ο„Ξ± Environment Variables Ο„ΞΏΟ… Render
 client = InferenceHTTPClient(
     api_url="https://serverless.roboflow.com",
-    api_key="qDv1m9dDwQQrex013Rce"
+    api_key=os.getenv("ROBOFLOW_API_KEY")
 )
 
-@app.route("/", methods=["GET"])
+# Ξ‘Ο€Ξ»Ο endpoint Ξ³ΞΉΞ± Ξ­Ξ»ΞµΞ³Ο‡ΞΏ
+@app.route("/")
 def home():
-    return "?? Roboflow detection API is running!"
+    return "β… Ξ¤ΞΏ app Ο„ΟΞ­Ο‡ΞµΞΉ ΟƒΟ‰ΟƒΟ„Ξ¬ ΟƒΟ„ΞΏ Render!"
 
-@app.route("/detect", methods=["POST"])
-def detect():
-    # Δέχεται είτε url είτε αρχείο εικόνας
-    if request.is_json and "url" in request.json:
-        image_url = request.json["url"]
-        response = requests.get(image_url)
-        image = Image.open(BytesIO(response.content))
-    elif "file" in request.files:
-        file = request.files["file"]
-        image = Image.open(file.stream)
-        image_url = None
-    else:
-        return jsonify({"error": "Παρέχετε είτε 'url' (JSON) είτε 'file' (form-data)"}), 400
+# Endpoint Ξ³ΞΉΞ± Ξ½Ξ± ΟƒΟ„ΞµΞ―Ξ»ΞµΞΉΟ‚ ΞµΞΉΞΊΟΞ½Ξ± ΟƒΟ„ΞΏ ΞΌΞΏΞ½Ο„Ξ­Ξ»ΞΏ
+@app.route("/predict", methods=["POST"])
+def predict():
+    """
+    Ξ ΞµΟΞΉΞΌΞ­Ξ½ΞµΞΉ Ξ­Ξ½Ξ± JSON request ΞΌΞµ:
+    {
+        "image_url": "https://path.to/your/image.jpg",
+        "model_id": "MODEL/1"   # Ο€.Ο‡. "bacteria-detection/1"
+    }
+    """
+    data = request.get_json()
 
-    # Στέλνουμε την εικόνα στο Roboflow
-    result = client.run_workflow(
-        workspace_name="cfu-counter",  # βάλε το δικό σου
-        workflow_id="custom-workflow-4",  # βάλε το δικό σου
-        images={"image": image_url} if image_url else {"image": file},
-        use_cache=True
-    )
+    if not data or "image_url" not in data or "model_id" not in data:
+        return jsonify({"error": "Ξ§ΟΞµΞΉΞ¬Ξ¶ΞΏΞ½Ο„Ξ±ΞΉ Ο„Ξ± Ο€ΞµΞ΄Ξ―Ξ± image_url ΞΊΞ±ΞΉ model_id"}), 400
 
-    return jsonify(result)
+    image_url = data["image_url"]
+    model_id = data["model_id"]
 
+    try:
+        result = client.infer(image_url, model_id=model_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Ξ•ΞΊΞΊΞ―Ξ½Ξ·ΟƒΞ· server
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    # To Render Ξ±Ξ½ΞΏΞ―Ξ³ΞµΞΉ Ο„ΞΏ port Ξ±Ο€Ο Ο„ΞΏ env var PORT
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
