@@ -1,4 +1,13 @@
-flask==3.0.3
-gunicorn==21.2.0
-requests==2.31.0
-inference-sdk==0.9.9
+with open('requirements.txt', 'w') as f:
+    f.write('Flask\n')
+    f.write('inference-sdk\n')
+    f.write('supervision\n')
+    f.write('pandas\n')
+    f.write('matplotlib\n')
+    f.write('requests\n')
+    f.write('Pillow\n')
+    f.write('gunicorn\n')
+    f.write('numpy\n') # Added numpy as it's used
+
+with open('Procfile', 'w') as f:
+    f.write('web: gunicorn app:app\n')
