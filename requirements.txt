@@ -1,5 +1,4 @@
-flask
-gunicorn
-inference-sdk
-requests
-pillow
+flask==3.0.3
+gunicorn==21.2.0
+requests==2.31.0
+inference-sdk==0.9.9
