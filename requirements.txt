@@ -1,5 +1,5 @@
 Flask
-inference-sdk
+inference-sdk==0.55.2
 supervision
 pandas
 matplotlib
